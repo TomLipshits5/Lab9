@@ -224,12 +224,10 @@ void quit(state* s){
     exit(0);
 }
 
-
-
 void relocationTable(state* s){
     int offset = s->head->e_shoff;
     int sectionNum = s->head->e_shnum;
-    Elf32_Shdr*  stringTable = s->fileData + offset + (s->head->e_shstrndx * s->head->e_shentsize);
+    Elf32_Shdr* stringTable = s->fileData + offset + (s->head->e_shstrndx * s->head->e_shentsize);
     Elf32_Shdr* dynSymTable;
     Elf32_Shdr* dynStrTable;
     for (int i = 0; i < sectionNum; ++i) {
@@ -241,15 +239,16 @@ void relocationTable(state* s){
             dynStrTable = sectionHeader;
         }
     }
-    printf("Offset  Info  Type  Sym.Value  Sym.Name\n");
+    printf("%-10s  %-10s  %-15s  %-10s  %-15s\n","Offset", "Info", "Type", "Sym.Value" ,"Sym.Name");
     for (int i = 0; i < sectionNum; ++i) {
         Elf32_Shdr* sectionHeader = s->fileData + offset + (i * s->head->e_shentsize);
         if(sectionHeader->sh_type == SHT_REL){
             for (int j = 0; j < sectionHeader->sh_size / sizeof(Elf32_Rel); ++j) {
                 Elf32_Rel* rel = s->fileData + sectionHeader->sh_offset + (j * sizeof(Elf32_Rel));
                 int symbolInfo = ELF32_R_SYM(rel->r_info);
-                Elf32_Sym* sym = s->fileData + dynSymTable->sh_offset + symbolInfo;
+                Elf32_Sym* sym = s->fileData + dynSymTable->sh_offset +(symbolInfo * sizeof(Elf32_Sym));
                 char* symName = (char*)(s->fileData + dynStrTable->sh_offset + sym->st_name);
+//                printf("this is the name: %s and this is the offset: %d", symName, sym->st_name);
                 printf("%-10x  %-10x  %-15u  %-10x  %-15s\n", rel->r_offset, rel->r_info, ELF32_R_TYPE(rel->r_info), sym->st_value, symName);
             }
         }
