@@ -226,34 +226,6 @@ void quit(state* s){
 
 
 
-void relocationTable(state* s){
-    int offset = s->head->e_shoff;
-    int sectionNum = s->head->e_shnum;
-    Elf32_Shdr*  stringTable = s->fileData + offset + (s->head->e_shstrndx * s->head->e_shentsize);
-    Elf32_Shdr* dynSymTable;
-    for (int i = 0; i < sectionNum; ++i) {
-        Elf32_Shdr* sectionHeader = s->fileData + offset + (i * s->head->e_shentsize);
-        if(sectionHeader->sh_type == SHT_DYNSYM){
-            dynSymTable = sectionHeader;
-            break;
-        }
-    }
-    printf("Offset      Info      Type      Sym.Value\n");
-    for (int i = 0; i < sectionNum; ++i) {
-        Elf32_Shdr* sectionHeader = s->fileData + offset + (i * s->head->e_shentsize);
-        char* name = (char*)(s->fileData + stringTable->sh_offset + sectionHeader->sh_name);
-        if(sectionHeader->sh_type == SHT_REL){
-            for (int j = 0; j < sectionHeader->sh_size / sizeof(Elf32_Rel); ++j) {
-                Elf32_Rel* rel = s->fileData + sectionHeader->sh_offset + (j * sizeof(Elf32_Rel));
-                int symbolInfo = ELF32_R_SYM(rel->r_info);
-                Elf32_Sym* sym = s->fileData + dynSymTable->sh_offset + symbolInfo;
-                printf("%-10x  %-10x  %-15u  %-10x\n", rel->r_offset, rel->r_info, ELF32_R_TYPE(rel->r_info), sym->st_value);
-            }
-        }
-    }
-}
-
-
 
 int main(int argc, char** argv) {
     state *myState = calloc(1, sizeof(state));
@@ -262,7 +234,7 @@ int main(int argc, char** argv) {
                         {"Examine ELF File",    &examine},
                         {"Print Section Names", &printSectionNames},
                         {"Print Symbols",       &printSymbolNames},
-                        {"Relocation Tables",   &relocationTable},
+                        {"Relocation Tables",   &notImplemented},
                         {"Quit",                &quit}};
     while (1) {
         printf("Chose a function number:\n");
